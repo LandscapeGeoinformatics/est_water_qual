@@ -9,7 +9,7 @@ from rasterio.fill import fillnodata
 
 from utils import get_zone, fp_to_dem_data, fp_to_zonal_raster
 
-# Input variables
+# Input arguments
 wd = sys.argv[1]
 zone_id = int(sys.argv[2])
 predictor = sys.argv[3]

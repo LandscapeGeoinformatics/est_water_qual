@@ -34,24 +34,6 @@ def get_zone(zone_id):
     return zone
 
 
-# Get path to NetCDF
-def fp_to_nc(predictor):
-    filename = None
-    if predictor in ['maxtemp', 'meantemp', 'mintemp']:
-        filename = '2m_temperature.nc'
-    elif predictor == 'precip':
-        filename = 'total_precipitation.nc'
-    elif predictor == 'snowdepth':
-        filename = 'snow_depth.nc'
-    fp = None
-    cwd = os.getcwd()
-    if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
-        fp = os.path.join(cwd, 'holgerv/era5', filename)
-    elif pathlib.Path(cwd) == pathlib.Path('D:/'):
-        fp = os.path.join(cwd, 'era5', filename)
-    return fp
-
-
 # Get path to soil data
 def fp_to_soil_data():
     filename = 'EstSoil-EH_v1.2c.gpkg'
@@ -88,14 +70,18 @@ def intermediate_fp_segment(predictor):
         elif predictor in ['flowlength', 'slope']:
             fp_segment = 'kmoch/nomograph/soil_prep'
         elif predictor == 'tri':
-            fp_segment = 'HannaIngrid/saga_TWI_5m/TWI'
-        elif predictor == 'tri':
             fp_segment = 'HannaIngrid/TRI_5m'
+        elif predictor == 'twi':
+            fp_segment = 'HannaIngrid/saga_TWI_5m/TWI'
+        # elif predictor in get_lulc_classes() or predictor == 'lulc' or 'arable_prop' in predictor:
+        #     fp_segment = 'holgerv/lulc'
     elif pathlib.Path(cwd) == pathlib.Path('D:/'):
         if predictor in ['maxtemp', 'meantemp', 'mintemp', 'precip', 'snowdepth']:
             fp_segment = f'era5/{predictor}'
         elif predictor in ['awc1', 'bd1', 'clay1', 'k1', 'rock1', 'sand1', 'silt1', 'soc1']:
             fp_segment = f'soil/{predictor}'
+        # elif predictor in get_lulc_classes() or predictor == 'lulc' or 'arable_prop' in predictor:
+        #     fp_segment = 'lulc'
     return fp_segment
 
 
@@ -109,3 +95,21 @@ def fp_to_zonal_raster(predictor, zone_id):
     filename = f'{predictor}_5m_pzone_{zone_id}.tif'
     fp = os.path.join(zonal_raster_dir, filename)
     return fp
+
+
+# # Get path to NetCDF
+# def fp_to_nc(predictor):
+#     filename = None
+#     if predictor in ['maxtemp', 'meantemp', 'mintemp']:
+#         filename = '2m_temperature.nc'
+#     elif predictor == 'precip':
+#         filename = 'total_precipitation.nc'
+#     elif predictor == 'snowdepth':
+#         filename = 'snow_depth.nc'
+#     fp = None
+#     cwd = os.getcwd()
+#     if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+#         fp = os.path.join(cwd, 'holgerv/era5', filename)
+#     elif pathlib.Path(cwd) == pathlib.Path('D:/'):
+#         fp = os.path.join(cwd, 'era5', filename)
+#     return fp
