@@ -7,7 +7,6 @@ import numpy as np
 from osgeo import gdal
 from rasterstats import zonal_stats
 import pandas as pd
-import pylandstats as pls
 
 
 # Get path to catchments
@@ -73,32 +72,82 @@ def get_zone_ids(site_code):
     return zone_ids
 
 
+# Get LULC class value
+def get_lulc_class_val(lulc_class):
+    classes = ['arable', 'forest', 'grassland', 'other', 'urban', 'water', 'wetland']
+    values = range(1, len(classes) + 1)
+    class_dict = dict(zip(classes, values))
+    return class_dict.get(lulc_class)
+
+
+# Get path to streams
+def fp_to_streams():
+    fp = None
+    cwd = os.getcwd()
+    filename = 'eelis_streams.gpkg'
+    if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+        fp = os.path.join(cwd, 'holgerv/est_water_qual/data/eelis', filename)
+    elif pathlib.Path(cwd) == pathlib.Path('D:/'):
+        fp = os.path.join(cwd, 'est_water_qual/data/eelis', filename)
+    return fp
+
+
+# Load streams
+def load_streams(site_code):
+    fp = fp_to_streams()
+    catchment = get_catchment(site_code)
+    streams = gpd.read_file(fp, mask=catchment)
+    return streams
+
+
+# Get path to riparian vegetation data
+def fp_to_rip_veg_data():
+    fp = None
+    cwd = os.getcwd()
+    filename = 'puhverriba_taimkate.gpkg'
+    if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+        fp = os.path.join(cwd, 'Evelyn/veekaitsevoondid/final files/FINAL/export_archive', filename)
+    return fp
+
+
+# Get path to forest disturbance data
+def fp_to_forest_disturb_data():
+    fp = None
+    cwd = os.getcwd()
+    filename = 'forest_disturb_3301.tif'
+    if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+        fp = os.path.join(cwd, 'holgerv/forest_disturb', filename)
+    elif pathlib.Path(cwd) == pathlib.Path('D:/'):
+        fp = os.path.join(cwd, 'forest_disturb', filename)
+    return fp
+
+
 # Get intermediate path segment of predictor raster
 def intermediate_fp_segment(predictor):
     fp_segment = None
     cwd = os.getcwd()
     if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
-        if predictor in ['maxtemp', 'meantemp', 'mintemp', 'precip', 'snowdepth']:
-            fp_segment = f'holgerv/era5/{predictor}'
+        if predictor in ['arable', 'forest', 'grassland', 'other', 'urban', 'water', 'wetland']:
+            fp_segment = 'holgerv/lulc'
         elif predictor in ['awc1', 'bd1', 'clay1', 'k1', 'rock1', 'sand1', 'silt1', 'soc1']:
             fp_segment = f'holgerv/soil/{predictor}'
-        elif predictor == 'dem':
+        elif predictor in 'dem':
             fp_segment = f'holgerv/{predictor}'
         elif predictor in ['flowlength', 'slope']:
             fp_segment = 'kmoch/nomograph/soil_prep'
+        elif predictor in ['precip', 'snow_depth', 'temp_max', 'temp_mean', 'temp_min']:
+            fp_segment = f'holgerv/era5/{predictor}'
         elif predictor == 'tri':
             fp_segment = 'HannaIngrid/TRI_5m'
         elif predictor == 'twi':
             fp_segment = 'HannaIngrid/saga_TWI_5m/TWI'
-        # elif predictor in get_lulc_classes() or predictor == 'lulc' or 'arable_prop' in predictor:
-        #     fp_segment = 'holgerv/lulc'
     elif pathlib.Path(cwd) == pathlib.Path('D:/'):
-        if predictor in ['maxtemp', 'meantemp', 'mintemp', 'precip', 'snowdepth']:
-            fp_segment = f'era5/{predictor}'
+        if predictor in ['arable', 'forest', 'grassland', 'other', 'urban', 'water', 'wetland']:
+            fp_segment = 'lulc'
         elif predictor in ['awc1', 'bd1', 'clay1', 'k1', 'rock1', 'sand1', 'silt1', 'soc1']:
             fp_segment = f'soil/{predictor}'
-        # elif predictor in get_lulc_classes() or predictor == 'lulc' or 'arable_prop' in predictor:
-        #     fp_segment = 'lulc'
+        elif predictor in ['precip', 'snow_depth', 'temp_max', 'temp_mean', 'temp_min']:
+            fp_segment = f'era5/{predictor}'
     return fp_segment
 
 
@@ -110,8 +159,8 @@ def fp_to_zonal_raster(predictor, zone_id):
     if not os.path.exists(zonal_raster_dir):
         os.makedirs(zonal_raster_dir)
     filename = f'{predictor}_5m_pzone_{zone_id}.tif'
-    # if predictor in get_lulc_classes() or predictor == 'lulc' or 'arable_prop' in predictor:
-    #     filename = f'lulc_5m_pzone_{zone_id}.tif'
+    if predictor in ['arable', 'forest', 'grassland', 'other', 'urban', 'water', 'wetland']:
+        filename = f'lulc_5m_pzone_{zone_id}.tif'
     fp = os.path.join(zonal_raster_dir, filename)
     return fp
 
@@ -129,8 +178,9 @@ def fp_to_predictor_raster(site_code, predictor):
 
 # Get raster band number to read
 def get_band_num(predictor, year):
-    band_num_dict = dict(zip(range(2016, 2021), range(1, 6)))
-    if predictor in ['maxtemp', 'meantemp', 'mintemp', 'precip', 'snowdepth']:
+    years = range(2016, 2021)
+    band_num_dict = dict(zip(years, range(1, len(years) + 1)))
+    if predictor in ['precip', 'snow_depth', 'temp_max', 'temp_mean', 'temp_min']:
         band_num = band_num_dict[year]
     else:
         band_num = 1
@@ -139,11 +189,11 @@ def get_band_num(predictor, year):
 
 # Get list of zonal stats to calculate
 def zonal_stats_to_calc(predictor):
-    if predictor == 'maxtemp':
+    if predictor == 'temp_max':
         stats = ['max']
-    elif predictor in ['meantemp', 'precip', 'snowdepth']:
+    elif predictor in ['precip', 'snow_depth', 'temp_mean']:
         stats = ['mean']
-    elif predictor == 'mintemp':
+    elif predictor == 'temp_min':
         stats = ['min']
     else:
         stats = ['min', 'max', 'mean', 'std']
@@ -153,18 +203,20 @@ def zonal_stats_to_calc(predictor):
 # Create DataFrame of zonal stats
 def zonal_stats_df(site_code, predictor):
     catchment = get_catchment(site_code)
-    predictor_raster = fp_to_predictor_raster(site_code, predictor)
     stats_dicts = []
     for year in range(2016, 2021):
         band_num = get_band_num(predictor, year)
-        ds = gdal.Open(predictor_raster)
+        ds = gdal.Open(fp_to_predictor_raster(site_code, predictor))
         no_data = ds.GetRasterBand(band_num).GetNoDataValue()
         if no_data is None:
             no_data = np.nan
         stats_to_calc = zonal_stats_to_calc(predictor)
+        prefix = f'{predictor}_'
+        if predictor in ['temp_max', 'temp_mean', 'temp_min']:
+            prefix = predictor.split('_')[0] + '_'
         stats = zonal_stats(
-            catchment, predictor_raster, band_num=band_num, nodata=no_data, stats=stats_to_calc,
-            prefix=f'{predictor}_'
+            catchment, fp_to_predictor_raster(site_code, predictor), band_num=band_num, nodata=no_data,
+            stats=stats_to_calc, prefix=prefix
         )
         stats_dict = stats[0]
         stats_dict['year'] = year
@@ -174,9 +226,8 @@ def zonal_stats_df(site_code, predictor):
     return stats_df
 
 
-# Calculate and export zonal stats to CSV
-def export_zonal_stats(site_code, predictor):
-    stats_df = zonal_stats_df(site_code, predictor)
+# Export stats to CSV
+def export_stats(stats_df, predictor):
     cwd = os.getcwd()
     stats_dir = None
     if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
@@ -185,147 +236,45 @@ def export_zonal_stats(site_code, predictor):
         stats_dir = os.path.join(cwd, f'est_water_qual/data/predictors/{predictor}')
     if not os.path.exists(stats_dir):
         os.makedirs(stats_dir)
+    site_code = stats_df['site_code'].unique()[0]
     filename = f'{site_code}_{predictor}_stats.csv'
     fp = os.path.join(cwd, stats_dir, filename)
     stats_df.to_csv(fp, sep=',', index=False)
     return
 
 
-# # Export stats to CSV
-# def export_stats(stats_df, site_code, predictor):
-#     cwd = os.getcwd()
-#     stats_dir = None
-#     if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
-#         stats_dir = os.path.join(cwd, f'holgerv/est_water_qual/data/predictors/{predictor}')
-#     elif pathlib.Path(cwd) == pathlib.Path('D:/'):
-#         stats_dir = os.path.join(cwd, f'est_water_qual/data/predictors/{predictor}')
-#     if not os.path.exists(stats_dir):
-#         os.makedirs(stats_dir)
-#     filename = f'{site_code}_{predictor}_stats.csv'
-#     fp = os.path.join(cwd, stats_dir, filename)
-#     stats_df.to_csv(fp, sep=',', index=False)
-#     return
-#
-#
-# # Get path to streams
-# def fp_to_streams():
-#     fp = None
-#     cwd = os.getcwd()
-#     filename = 'eelis_streams.gpkg'
-#     if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
-#         fp = os.path.join(cwd, 'holgerv/est_water_qual/data/eelis', filename)
-#     elif pathlib.Path(cwd) == pathlib.Path('D:/'):
-#         fp = os.path.join(cwd, 'est_water_qual/data/eelis', filename)
-#     return fp
-#
-#
-# # Load streams
-# def load_streams(site_code):
-#     fp = fp_to_streams()
-#     catchment = get_catchment(site_code)
-#     streams = gpd.read_file(fp, mask=catchment)
-#     return streams
-#
-#
-# # Clip streams with catchment
-# def clip_streams(site_code):
-#     streams = load_streams(site_code)
-#     catchment = get_catchment(site_code)
-#     # streams_clip = gpd.clip(streams, catchment, keep_geom_type=True).reset_index(drop=True)
-#     streams_clip = gpd.clip(streams, catchment).reset_index(drop=True)
-#     return streams_clip
-#
-#
-# # Buffer streams
-# def buffer_streams(site_code, buff_dist):
-#     streams_clip = clip_streams(site_code)
-#     buffers = streams_clip.copy()
-#     buffers['geometry'] = buffers.buffer(buff_dist)
-#     # buffers = gpd.GeoDataFrame(geometry=streams_clip.buffer(buff_dist), crs=streams_clip.crs)
-#     print(buffers.head())
-#     return buffers
-#
-#
-# # Get path to buffers
-# def fp_to_buffers(site_code, buff_dist, predictor):
-#     buffers = buffer_streams(site_code, buff_dist)
-#     fp = f'/vsimem/{site_code}_{predictor}_buff.gpkg'
-#     buffers.to_file(fp)
-#     return fp
-#
-#
-# # Get path to catchment raster
-# def fp_to_catch_raster(site_code, predictor):
-#     fp = f'/vsimem/{site_code}_{predictor}_catch.tif'
-#     gdal.Warp(
-#         fp, fp_to_predictor_raster(site_code, predictor), cutlineDSName=fp_to_catchments(),
-#         cutlineWhere=f"kkr_kood='{site_code}'", cropToCutline=True
-#     )
-#     return fp
-#
-#
-# # Get path to buffer raster
-# def fp_to_buff_raster(site_code, predictor, buff_dist):
-#     fp = f'/vsimem/{site_code}_{predictor}_buff.tif'
-#     gdal.Warp(
-#         fp, fp_to_predictor_raster(site_code, predictor),
-#         cutlineDSName=fp_to_buffers(site_code, buff_dist, predictor), cropToCutline=True
-#     )
-#     return fp
-#
-#
-# # Get landscape instance
-# def get_landscape(filename):
-#     ls = pls.Landscape(filename)
-#     return ls
-#
-#
-# # Calculate area of class in landscape
-# def calc_class_area(landscape, class_val):
-#     area = landscape.area(class_val).sum()
-#     return area
-#
-#
-# # Get path to LULC data
-# def fp_to_lulc_data():
-#     filename = 'lulc_simplified_classified.gpkg'
-#     fp = None
-#     cwd = os.getcwd()
-#     if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
-#         fp = os.path.join(cwd, 'kmoch/estsoil-eh_soilmap', filename)
-#     elif pathlib.Path(cwd) == pathlib.Path('D:/'):
-#         fp = os.path.join(cwd, 'lulc', filename)
-#     return fp
-#
-#
-# # Get LULC classes
-# def get_lulc_classes():
-#     lulc_classes = ['arable', 'forest', 'grassland', 'other', 'urban', 'water', 'wetland']
-#     return lulc_classes
+# Get pollution sensitivity class value
+def get_sen_class_val(sen_class):
+    classes = ['vl', 'l', 'm', 'h', 'vh']
+    values = range(1, len(classes) + 1)
+    class_dict = dict(zip(classes, values))
+    return class_dict.get(sen_class)
 
 
-# def create_catchment_raster(site_code, predictor):
-#     catchment = get_catchment(site_code)
-#     fp_to_catchment = f'/vsimem/{site_code}_catchment.gpkg'
-#     catchment.to_file(fp_to_catchment)
-#     predictor_raster = create_predictor_raster(site_code, predictor)
-#     catchment_raster = f'/vsimem/{site_code}_{predictor}.tif'
-#     gdal.Warp(
-#         catchment_raster, predictor_raster, cutlineDSName=fp_to_catchment, cropToCutline=True,
-#         creationOptions=['COMPRESS=LZW', 'PREDICTOR=2'], dstNodata=np.nan
-#     )
-#     return catchment_raster
-#
-#
-# def calc_stats(site_code, predictor):
-#     catchment_raster = create_catchment_raster(site_code, predictor)
-#     ds = gdal.Open(catchment_raster)
-#     array = ds.GetRasterBand(1).ReadAsArray()
-#     stats_dict = {
-#         f'{predictor}_min': array[~np.isnan(array)].min(),
-#         f'{predictor}_max': array[~np.isnan(array)].max(),
-#         f'{predictor}_mean': array[~np.isnan(array)].mean(),
-#         f'{predictor}_std': array[~np.isnan(array)].std()
-#     }
-#     print(stats_dict)
-#     return
+# Get path to livestock data
+def fp_to_livestock_data():
+    fp = None
+    cwd = os.getcwd()
+    filename = 'PRIA_famid.xlsx'
+    if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+        fp = os.path.join(cwd, 'holgerv/livestock', filename)
+    elif pathlib.Path(cwd) == pathlib.Path('D:/'):
+        fp = os.path.join(cwd, 'livestock', filename)
+    return fp
+
+
+# Calculate livestock units
+def calc_livestock_units(cattle, sheep, goats, pigs):
+    return cattle + sheep * 0.21 + goats * 0.21 + pigs * 0.2
+
+
+# Get path to counties
+def fp_to_counties():
+    filename = 'maakond_20210901.shp'
+    fp = None
+    cwd = os.getcwd()
+    if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+        fp = os.path.join(cwd, 'holgerv/est_water_qual/data/maakond_shp', filename)
+    elif pathlib.Path(cwd) == pathlib.Path('D:/'):
+        fp = os.path.join(cwd, 'est_water_qual/data/maakond_shp', filename)
+    return fp

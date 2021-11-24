@@ -56,32 +56,70 @@ def fp_to_dem_data(zone_id):
     return fp
 
 
+# Get path to LULC data
+def fp_to_lulc_data():
+    filename = 'lulc_simplified_classified.gpkg'
+    fp = None
+    cwd = os.getcwd()
+    if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+        fp = os.path.join(cwd, 'kmoch/estsoil-eh_soilmap', filename)
+    elif pathlib.Path(cwd) == pathlib.Path('D:/'):
+        fp = os.path.join(cwd, 'lulc', filename)
+    return fp
+
+
+# Get LULC class value
+def get_lulc_class_val(lulc_class):
+    classes = ['arable', 'forest', 'grassland', 'other', 'urban', 'water', 'wetland']
+    values = range(1, len(classes) + 1)
+    class_dict = dict(zip(classes, values))
+    return class_dict.get(lulc_class)
+
+
+# Get path to climate data
+def fp_to_climate_data(predictor):
+    filename = None
+    if predictor in ['temp_max', 'temp_mean', 'temp_min']:
+        filename = '2m_temperature.nc'
+    elif predictor == 'precip':
+        filename = 'total_precipitation.nc'
+    elif predictor == 'snow_depth':
+        filename = 'snow_depth.nc'
+    fp = None
+    cwd = os.getcwd()
+    if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+        fp = os.path.join(cwd, 'holgerv/era5', filename)
+    elif pathlib.Path(cwd) == pathlib.Path('D:/'):
+        fp = os.path.join(cwd, 'era5', filename)
+    return fp
+
+
 # Get intermediate path segment of predictor raster
 def intermediate_fp_segment(predictor):
     fp_segment = None
     cwd = os.getcwd()
     if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
-        if predictor in ['maxtemp', 'meantemp', 'mintemp', 'precip', 'snowdepth']:
-            fp_segment = f'holgerv/era5/{predictor}'
+        if predictor in ['arable', 'forest', 'grassland', 'other', 'urban', 'water', 'wetland']:
+            fp_segment = 'holgerv/lulc'
         elif predictor in ['awc1', 'bd1', 'clay1', 'k1', 'rock1', 'sand1', 'silt1', 'soc1']:
             fp_segment = f'holgerv/soil/{predictor}'
-        elif predictor == 'dem':
+        elif predictor in 'dem':
             fp_segment = f'holgerv/{predictor}'
         elif predictor in ['flowlength', 'slope']:
             fp_segment = 'kmoch/nomograph/soil_prep'
+        elif predictor in ['temp_max', 'temp_mean', 'temp_min', 'precip', 'snow_depth']:
+            fp_segment = f'holgerv/era5/{predictor}'
         elif predictor == 'tri':
             fp_segment = 'HannaIngrid/TRI_5m'
         elif predictor == 'twi':
             fp_segment = 'HannaIngrid/saga_TWI_5m/TWI'
-        # elif predictor in get_lulc_classes() or predictor == 'lulc' or 'arable_prop' in predictor:
-        #     fp_segment = 'holgerv/lulc'
     elif pathlib.Path(cwd) == pathlib.Path('D:/'):
-        if predictor in ['maxtemp', 'meantemp', 'mintemp', 'precip', 'snowdepth']:
-            fp_segment = f'era5/{predictor}'
+        if predictor in ['arable', 'forest', 'grassland', 'other', 'urban', 'water', 'wetland']:
+            fp_segment = 'lulc'
         elif predictor in ['awc1', 'bd1', 'clay1', 'k1', 'rock1', 'sand1', 'silt1', 'soc1']:
             fp_segment = f'soil/{predictor}'
-        # elif predictor in get_lulc_classes() or predictor == 'lulc' or 'arable_prop' in predictor:
-        #     fp_segment = 'lulc'
+        elif predictor in ['temp_max', 'temp_mean', 'temp_min', 'precip', 'snow_depth']:
+            fp_segment = f'era5/{predictor}'
     return fp_segment
 
 
@@ -93,23 +131,31 @@ def fp_to_zonal_raster(predictor, zone_id):
     if not os.path.exists(zonal_raster_dir):
         os.makedirs(zonal_raster_dir)
     filename = f'{predictor}_5m_pzone_{zone_id}.tif'
+    if predictor in ['arable', 'forest', 'grassland', 'other', 'urban', 'water', 'wetland']:
+        filename = f'lulc_5m_pzone_{zone_id}.tif'
     fp = os.path.join(zonal_raster_dir, filename)
     return fp
 
 
-# # Get path to NetCDF
-# def fp_to_nc(predictor):
-#     filename = None
-#     if predictor in ['maxtemp', 'meantemp', 'mintemp']:
-#         filename = '2m_temperature.nc'
-#     elif predictor == 'precip':
-#         filename = 'total_precipitation.nc'
-#     elif predictor == 'snowdepth':
-#         filename = 'snow_depth.nc'
-#     fp = None
-#     cwd = os.getcwd()
-#     if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
-#         fp = os.path.join(cwd, 'holgerv/era5', filename)
-#     elif pathlib.Path(cwd) == pathlib.Path('D:/'):
-#         fp = os.path.join(cwd, 'era5', filename)
-#     return fp
+# Get path to manure data
+def fp_to_manure_data(predictor):
+    filename = f'{predictor}.csv'
+    fp = None
+    cwd = os.getcwd()
+    if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+        fp = os.path.join(cwd, 'holgerv/manure', filename)
+    elif pathlib.Path(cwd) == pathlib.Path('D:/'):
+        fp = os.path.join(cwd, 'manure', filename)
+    return fp
+
+
+# Get path to arable land data
+def fp_to_arable_land_data():
+    filename = f'arable_land.csv'
+    fp = None
+    cwd = os.getcwd()
+    if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+        fp = os.path.join(cwd, 'holgerv/manure', filename)
+    elif pathlib.Path(cwd) == pathlib.Path('D:/'):
+        fp = os.path.join(cwd, 'manure', filename)
+    return fp
