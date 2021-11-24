@@ -2,7 +2,7 @@
 import sys
 import os
 
-from utils import export_zonal_stats
+from utils import zonal_stats_df, export_stats
 
 # Input arguments
 wd = sys.argv[1]
@@ -13,4 +13,4 @@ predictor = sys.argv[3]
 os.chdir(wd)
 
 # Calculate and export zonal stats
-export_zonal_stats(site_code, predictor)
+export_stats(zonal_stats_df(site_code, predictor), predictor)
