@@ -28,13 +28,13 @@ counties_clip = gpd.clip(counties, catchment)\
     .pipe(lambda df: df.assign(area_ha=df.area / 10000))
 
 # Read manure data
+fp = None
 cwd = os.getcwd()
 filename = f'manure/{predictor}_kg_per_ha.csv'
 if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
     fp = os.path.join(cwd, 'holgerv/manure', filename)
 elif pathlib.Path(cwd) == pathlib.Path('D:/'):
     fp = os.path.join(cwd, 'manure', filename)
-fp = os.path.join(os.getcwd(), f'{predictor}_kg_per_ha.csv')
 manure = pd.read_csv(fp, sep=',')
 
 # Merge counties with manure
