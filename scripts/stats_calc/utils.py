@@ -13,11 +13,11 @@ import pandas as pd
 def fp_to_catchments():
     fp = None
     cwd = os.getcwd()
-    filename = 'Hüdrokeemia_valglad.shp'
+    filename = 'catchments.shp'
     if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
-        fp = os.path.join(cwd, 'holgerv/est_water_qual/data/Valglad', filename)
+        fp = os.path.join(cwd, 'holgerv/est_water_qual/data/catchments', filename)
     elif pathlib.Path(cwd) == pathlib.Path('D:/'):
-        fp = os.path.join(cwd, 'est_water_qual/data/Valglad', filename)
+        fp = os.path.join(cwd, 'est_water_qual/data/catchments', filename)
     return fp
 
 
@@ -32,7 +32,7 @@ def load_catchments():
 # Get catchment
 def get_catchment(site_code):
     catchments = load_catchments()
-    catchment = catchments[catchments['kkr_kood'] == site_code].reset_index(drop=True)
+    catchment = catchments[catchments['site_code'] == site_code].reset_index(drop=True)
     return catchment
 
 
@@ -110,18 +110,6 @@ def fp_to_rip_veg_data():
     return fp
 
 
-# Get path to forest disturbance data
-def fp_to_forest_disturb_data():
-    fp = None
-    cwd = os.getcwd()
-    filename = 'forest_disturb_3301.tif'
-    if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
-        fp = os.path.join(cwd, 'holgerv/forest_disturb', filename)
-    elif pathlib.Path(cwd) == pathlib.Path('D:/'):
-        fp = os.path.join(cwd, 'forest_disturb', filename)
-    return fp
-
-
 # Get intermediate path segment of predictor raster
 def intermediate_fp_segment(predictor):
     fp_segment = None
@@ -131,7 +119,7 @@ def intermediate_fp_segment(predictor):
             fp_segment = 'holgerv/lulc'
         elif predictor in ['awc1', 'bd1', 'clay1', 'k1', 'rock1', 'sand1', 'silt1', 'soc1']:
             fp_segment = f'holgerv/soil/{predictor}'
-        elif predictor in 'dem':
+        elif predictor in ['dem', 'forest_disturb']:
             fp_segment = f'holgerv/{predictor}'
         elif predictor in ['flowlength', 'slope']:
             fp_segment = 'kmoch/nomograph/soil_prep'
@@ -146,6 +134,8 @@ def intermediate_fp_segment(predictor):
             fp_segment = 'lulc'
         elif predictor in ['awc1', 'bd1', 'clay1', 'k1', 'rock1', 'sand1', 'silt1', 'soc1']:
             fp_segment = f'soil/{predictor}'
+        elif predictor == 'forest_disturb':
+            fp_segment = f'{predictor}'
         elif predictor in ['precip', 'snow_depth', 'temp_max', 'temp_mean', 'temp_min']:
             fp_segment = f'era5/{predictor}'
     return fp_segment

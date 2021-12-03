@@ -30,7 +30,7 @@ counties_clip = gpd.clip(counties, catchment)\
 # Read manure data
 fp = None
 cwd = os.getcwd()
-filename = f'manure/{predictor}_kg_per_ha.csv'
+filename = f'{predictor}_kg_per_ha.csv'
 if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
     fp = os.path.join(cwd, 'holgerv/manure', filename)
 elif pathlib.Path(cwd) == pathlib.Path('D:/'):
