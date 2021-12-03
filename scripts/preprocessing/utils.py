@@ -94,6 +94,18 @@ def fp_to_climate_data(predictor):
     return fp
 
 
+# Get path to forest disturbance data
+def fp_to_forest_disturb_data():
+    fp = None
+    cwd = os.getcwd()
+    filename = 'estonia/disturbance_year_1986-2020_estonia.tif'
+    if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+        fp = os.path.join(cwd, 'holgerv/forest_disturb', filename)
+    elif pathlib.Path(cwd) == pathlib.Path('D:/'):
+        fp = os.path.join(cwd, 'forest_disturb', filename)
+    return fp
+
+
 # Get intermediate path segment of predictor raster
 def intermediate_fp_segment(predictor):
     fp_segment = None
@@ -103,11 +115,11 @@ def intermediate_fp_segment(predictor):
             fp_segment = 'holgerv/lulc'
         elif predictor in ['awc1', 'bd1', 'clay1', 'k1', 'rock1', 'sand1', 'silt1', 'soc1']:
             fp_segment = f'holgerv/soil/{predictor}'
-        elif predictor in 'dem':
+        elif predictor in ['dem', 'forest_disturb']:
             fp_segment = f'holgerv/{predictor}'
         elif predictor in ['flowlength', 'slope']:
             fp_segment = 'kmoch/nomograph/soil_prep'
-        elif predictor in ['temp_max', 'temp_mean', 'temp_min', 'precip', 'snow_depth']:
+        elif predictor in ['precip', 'snow_depth', 'temp_max', 'temp_mean', 'temp_min']:
             fp_segment = f'holgerv/era5/{predictor}'
         elif predictor == 'tri':
             fp_segment = 'HannaIngrid/TRI_5m'
@@ -118,7 +130,9 @@ def intermediate_fp_segment(predictor):
             fp_segment = 'lulc'
         elif predictor in ['awc1', 'bd1', 'clay1', 'k1', 'rock1', 'sand1', 'silt1', 'soc1']:
             fp_segment = f'soil/{predictor}'
-        elif predictor in ['temp_max', 'temp_mean', 'temp_min', 'precip', 'snow_depth']:
+        elif predictor == 'forest_disturb':
+            fp_segment = f'{predictor}'
+        elif predictor in ['precip', 'snow_depth', 'temp_max', 'temp_mean', 'temp_min']:
             fp_segment = f'era5/{predictor}'
     return fp_segment
 
