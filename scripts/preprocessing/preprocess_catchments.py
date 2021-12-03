@@ -15,9 +15,9 @@ for param in ['tn', 'tp']:
 obs = pd.concat(dfs).\
     drop_duplicates(subset='Seirekoha KKR').\
     reset_index(drop=True).\
-    rename(columns={'Seirekoha KKR': 'site_code', 'Veekogu KKR': 'waterbody_code'})
+    rename(columns={'Seirekoha KKR': 'site_code', 'Veekogu KKR': 'wb_code'})
 
-# Load catchments of hydrochemistry stations
+# Load catchments of hydrochemical stations
 hydrochem_catchments = gpd.read_file('est_water_qual/data/catchments/Valglad/Hüdrokeemia_valglad.shp')
 hydrochem_catchments = hydrochem_catchments.\
     drop(['nimi', 'Shape_Area'], axis=1).rename(columns={'kkr_kood': 'site_code'})
@@ -35,7 +35,7 @@ catchments = pd.concat([hydrochem_catchments, obs_catchments])\
 catchments = catchments.merge(obs, how='left', on='site_code')
 
 # Drop catchments of River Narva
-catchments = catchments[catchments['waterbody_code'] != 'VEE1062200'].reset_index(drop=True)
+catchments = catchments[catchments['wb_code'] != 'VEE1062200'].reset_index(drop=True)
 
 # Write to GPKG
-catchments.to_file('est_water_qual/data/catchments/catchments.gpkg', driver='GPKG')
+catchments.to_file('est_water_qual/data/catchments/catchments.shp')
