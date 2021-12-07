@@ -173,3 +173,15 @@ def fp_to_arable_land_data():
     elif pathlib.Path(cwd) == pathlib.Path('D:/'):
         fp = os.path.join(cwd, 'manure', filename)
     return fp
+
+
+# Get path to streams
+def fp_to_streams():
+    fp = None
+    cwd = os.getcwd()
+    filename = 'eelis_streams.gpkg'
+    if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+        fp = os.path.join(cwd, 'holgerv/est_water_qual/data/eelis', filename)
+    elif pathlib.Path(cwd) == pathlib.Path('D:/'):
+        fp = os.path.join(cwd, 'est_water_qual/data/eelis', filename)
+    return fp
