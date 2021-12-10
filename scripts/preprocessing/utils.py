@@ -185,3 +185,13 @@ def fp_to_streams():
     elif pathlib.Path(cwd) == pathlib.Path('D:/'):
         fp = os.path.join(cwd, 'est_water_qual/data/eelis', filename)
     return fp
+
+
+# Get path to limestone data
+def fp_to_limestone_data():
+    filename = 'aluspohja lubjakivi.shp'
+    fp = None
+    cwd = os.getcwd()
+    if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+        fp = os.path.join(cwd, 'holgerv/Eesti kaardid/Aluspohi ja pinnakate', filename)
+    return fp
