@@ -123,6 +123,8 @@ def intermediate_fp_segment(predictor):
             fp_segment = f'holgerv/{predictor}'
         elif predictor in ['flowlength', 'slope']:
             fp_segment = 'kmoch/nomograph/soil_prep'
+        elif predictor == 'limestone':
+            fp_segment = 'holgerv/geology/limestone'
         elif predictor in ['precip', 'snow_depth', 'temp_max', 'temp_mean', 'temp_min']:
             fp_segment = f'holgerv/era5/{predictor}'
         elif predictor == 'tri':
