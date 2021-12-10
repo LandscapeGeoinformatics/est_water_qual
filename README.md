@@ -19,7 +19,7 @@ The **scripts** are divided into three folders. Folder **preprocessing** contain
 * *calc_stats.py* as a generic script for extracting zonal statistics for climate, soil and topographic variables
 * *calc_stream_density.py* for calculating stream density in catchments as the total length of streams divided by catchment area
 * *concat_stats.py* for concatenating the derived statistics for each predictor
-* * *utils.py* containing helper functions for extracting statistics from predictor variables
+* *utils.py* containing helper functions for extracting statistics from predictor variables
 
 **model** contains the following scripts:
 * *extract_site_catchments.py* for extracting the catchments of observation sites used in the model
