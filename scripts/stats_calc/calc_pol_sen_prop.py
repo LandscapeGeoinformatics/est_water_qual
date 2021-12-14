@@ -52,7 +52,7 @@ if not pol_sen_clip.empty:
 # Create DataFrame of stats
 years = range(2016, 2021)
 stats = [prop for i in range(len(years))]
-stats_df = pd.DataFrame(list(zip(stats, years)), columns=[f'{predictor}_pol_sen_{sen_class}_prop', 'year'])
+stats_df = pd.DataFrame(list(zip(stats, years)), columns=[f'{predictor}_{sen_class}_prop', 'year'])
 stats_df.insert(0, 'site_code', site_code)
 
 # Export stats to CSV
