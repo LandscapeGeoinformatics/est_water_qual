@@ -15,7 +15,7 @@ os.chdir(wd)
 # Get list of predictors
 dir_path = None
 cwd = os.getcwd()
-if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\export.hpc.ut.ee\gis')]:
     dir_path = 'holgerv/est_water_qual/data/predictors'
 elif pathlib.Path(cwd) == pathlib.Path('D:/'):
     dir_path = 'est_water_qual/data/predictors'
@@ -40,7 +40,7 @@ for col in df_predictors.columns:
 
 # Read observation data
 fp_obs = None
-if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\export.hpc.ut.ee\gis')]:
     fp_obs = os.path.join(cwd, f'holgerv/est_water_qual/data/kese/{param}_obs_yearly.csv')
 elif pathlib.Path(cwd) == pathlib.Path('D:/'):
     out_fp = os.path.join(cwd, f'est_water_qual/data/kese/{param}_obs_yearly.csv')
@@ -55,7 +55,7 @@ ml_input.insert(2, 'parameter', param.upper())
 
 # Write to CSV
 out_name = f'{param}_ml_input.csv'
-if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\ces.hpc.ut.ee\gis')]:
+if pathlib.Path(cwd) in [pathlib.Path('/gpfs/rocket/samba/gis'), pathlib.Path(r'\\export.hpc.ut.ee\gis')]:
     out_fp = os.path.join(cwd, 'holgerv/est_water_qual/model', out_name)
 elif pathlib.Path(cwd) == pathlib.Path('D:/'):
     out_fp = os.path.join(cwd, 'est_water_qual/model', out_name)
