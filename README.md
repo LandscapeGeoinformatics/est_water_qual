@@ -22,11 +22,20 @@ The **scripts** are divided into three folders. Folder **preprocessing** contain
 * *utils.py* containing helper functions for extracting statistics from predictor variables
 
 **model** contains the following scripts:
+* *correlate_features.py* for calculating correlations between features used as predictors
 * *extract_site_catchments.py* for extracting the catchments of observation sites used in the model
+* *group_features.py* for grouping features based on their subcode
+* *plot_obs_vs_pred.py* for creating plots comaring the observed water quality data to their corresponding predictions
+* *plot_shap.py* for creating plots based on SHAP values
+* *predict.py* for validating the model
 * *prepare_ml_input.py* for merging the predictor variables with the water quality observations
+* *results_to_gpkg.py* for adding the modeling results to catchments for plotting purposes
+* *select_features.py* for creating four feature sets for both nutrients based on feature correlations
+* *train_model.py* for building the model for a particular feature set based on hyperparameter optimization
 * *utils.py* containing helper functions used for building the model
 
 Most of the Python scripts also have corresponding shell scripts that were used for submitting Slurm jobs to the HPC cluster of University of Tartu.
 
 The **notebooks** folder contains the following Jupyter notebooks used for analyzing the water quality data:
 * *explore_wq_data.ipynb* for statistics and plots about the water quality observations
+* *format_results.ipynb* for collating the plots used in the paper
